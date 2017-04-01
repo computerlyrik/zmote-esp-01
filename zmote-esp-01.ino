@@ -7,14 +7,19 @@ char uuid[12];
 
 void setup() 
 {
-    
+  pinMode(LED_BUILTIN, OUTPUT);     // Initialize the LED_BUILTIN pin as an output
+  digitalWrite(LED_BUILTIN, LOW); 
+
+  pinMode(2, OUTPUT);     // Initialize the LED_BUILTIN pin as an output
+  digitalWrite(2, LOW); 
+
   // start serial
-  Serial.begin(9600);
+  //Serial.begin(9600);
   delay(100);
 
   get_uuid(uuid);
-  Serial.print("Setup got uuid: ");
-  Serial.println(uuid);
+  //Serial.print("Setup got uuid: ");
+  //Serial.println(uuid);
 
   webserver.on("/", []() {
      webserver.send(200, "text/html", "<html><head> <title>zmote-esp-01</title></head><body><h1>ZMote API v2 Endpoint</h1></body></html>");
@@ -34,8 +39,8 @@ void setup()
 
   char command_uri[17] = "/v2/";
   strcat(command_uri,uuid);
-  Serial.print("Listening on command uri: ");
-  Serial.println(command_uri);
+  //Serial.print("Listening on command uri: ");
+  //Serial.println(command_uri);
   webserver.on(command_uri, HTTPMethod::HTTP_POST, handleRequestCommand);
 
   webserver.onNotFound(handleNotFound);
@@ -43,6 +48,12 @@ void setup()
   setup_networking(); 
 
   setup_ir();
+
+  digitalWrite(LED_BUILTIN, HIGH);
+  delay(200); 
+  digitalWrite(LED_BUILTIN, LOW); 
+  delay(100);
+  digitalWrite(LED_BUILTIN, HIGH); 
 
 }
 
@@ -56,27 +67,33 @@ void handle_discoveryserver() {
   int packetSize = udp.parsePacket();
   if (packetSize)
   {
-    Serial.printf("Discovery Received %d bytes from %s, port %d\n", packetSize, udp.remoteIP().toString().c_str(), udp.remotePort());
+    digitalWrite(LED_BUILTIN, LOW); 
+    //Serial.printf("Discovery Received %d bytes from %s, port %d\n", packetSize, udp.remoteIP().toString().c_str(), udp.remotePort());
     int len = udp.read(incomingPacket, 255);
     if (len > 0)
     {
       incomingPacket[len] = 0;
     }
-    Serial.printf("UDP packet contents: %s\n", incomingPacket);
+    //Serial.printf("UDP packet contents: %s\n", incomingPacket);
     if (incomingPacket[0] == 0xbe && incomingPacket[1] == 0xef)
     {
+      /*
       Serial.print("Answering to discoverer ip ");
       Serial.print(udp.remoteIP());
       Serial.print(" port ");
       Serial.println(udp.remotePort());
+      */
       udp.beginPacket(udp.remoteIP(), udp.remotePort());
       char buffer[HTTP_BODYSIZE];
       info_object(buffer, sizeof(buffer));
+      /*
       Serial.print("Discovery Answer: ");
       Serial.println(buffer);
+      */
       udp.write(buffer);
       udp.endPacket();
     }
+  digitalWrite(LED_BUILTIN, HIGH); 
   }
 }
 
@@ -95,8 +112,8 @@ void info_object(char* buf, size_t maxSize) {
 void handleRequestCommand() {
   String body = webserver.arg("plain");
   String parameters = "";
-  Serial.print("processing body request: ");
-  Serial.println(body);
+  //Serial.print("processing body request: ");
+  //Serial.println(body);
 
   int khz = 38;
   unsigned int irSignal[] = {9000, 4500, 560, 560, 560, 560, 560, 1690, 560, 560, 560, 560, 560, 560, 560, 560, 560, 560, 560, 1690, 560, 1690, 560, 560, 560, 1690, 560, 1690, 560, 1690, 560, 1690, 560, 1690, 560, 560, 560, 560, 560, 560, 560, 1690, 560, 560, 560, 560, 560, 560, 560, 560, 560, 1690, 560, 1690, 560, 1690, 560, 560, 560, 1690, 560, 1690, 560, 1690, 560, 1690, 560, 39416, 9000, 2210, 560}; //AnalysIR Batch Export (IRremote) - RAW
@@ -104,10 +121,11 @@ void handleRequestCommand() {
   irsend.sendRaw(irSignal, sizeof(irSignal) / sizeof(irSignal[0]), khz); //Note the approach used to automatically calculate the size of the array.
 
   if (body.substring(0,6) == "sendir") {
-    Serial.println("Processing sendir");
+    digitalWrite(LED_BUILTIN, LOW); 
+    //Serial.println("Processing sendir");
     String ircode = body.substring(13);  //sendir,1:1,0,%s"
-    Serial.print("Ircode: ");
-    Serial.println(ircode);
+    //Serial.print("Ircode: ");
+    //Serial.println(ircode);
 
 
     unsigned int buffer[HTTP_BODYSIZE];
@@ -134,6 +152,8 @@ void handleRequestCommand() {
     */
     irsend.sendRaw(buffer, msg_size, khz);
     webserver.send(200, "text/html", "completeir,1:1,0");
+    digitalWrite(LED_BUILTIN, HIGH);
+
   }
   
   

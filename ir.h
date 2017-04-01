@@ -9,6 +9,6 @@ struct zmote_command {
   String data;
 };
 
-IRsend irsend(5);
+IRsend irsend(2);
 
 #endif
