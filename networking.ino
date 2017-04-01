@@ -33,5 +33,7 @@ void setup_networking()
   
   Serial.println(WiFi.localIP());
 
+  delay(100);
+
 
 }

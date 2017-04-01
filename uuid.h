@@ -6,6 +6,6 @@
 #include "networking.h"
 #include <EEPROM.h>
 
-char* get_uuid();
+void get_uuid(char* uuid);
 
 #endif
