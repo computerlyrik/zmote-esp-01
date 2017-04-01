@@ -4,6 +4,11 @@
 
 #include <IRremoteESP8266.h>
 
-IRsend irsend(1);
+struct zmote_command {
+  String command;
+  String data;
+};
+
+IRsend irsend(5);
 
 #endif

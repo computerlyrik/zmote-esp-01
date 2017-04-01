@@ -49,7 +49,7 @@ void setup()
   //mac = WiFi.macAddress();
   //local_ip = WiFi.localIP().toString();
 
-  //setup_ir();
+  setup_ir();
 
 }
 
@@ -103,7 +103,41 @@ void handleRequestCommand() {
   String body = webserver.arg("plain");
   String parameters = "";
   Serial.print("processing body request: ");
-  Serial.print(body);
+  Serial.println(body);
+
+  int khz = 38;
+  unsigned int irSignal[] = {9000, 4500, 560, 560, 560, 560, 560, 1690, 560, 560, 560, 560, 560, 560, 560, 560, 560, 560, 560, 1690, 560, 1690, 560, 560, 560, 1690, 560, 1690, 560, 1690, 560, 1690, 560, 1690, 560, 560, 560, 560, 560, 560, 560, 1690, 560, 560, 560, 560, 560, 560, 560, 560, 560, 1690, 560, 1690, 560, 1690, 560, 560, 560, 1690, 560, 1690, 560, 1690, 560, 1690, 560, 39416, 9000, 2210, 560}; //AnalysIR Batch Export (IRremote) - RAW
+  
+  irsend.sendRaw(irSignal, sizeof(irSignal) / sizeof(irSignal[0]), khz); //Note the approach used to automatically calculate the size of the array.
+
+  if (body.substring(0,6) == "sendir") {
+    Serial.println("Processing sendir");
+    String ircode = body.substring(13);  //sendir,1:1,0,%s"
+    Serial.print("Ircode: ");
+    Serial.println(ircode);
+
+
+    unsigned int buffer[HTTP_BODYSIZE];
+    char ircode_char[ircode.length()];
+    ircode.toCharArray(ircode_char, ircode.length());
+  
+    char * pch;
+    pch = strtok (ircode_char, ", ");
+    uint8_t msg_size = 0;
+    while (pch != NULL)
+    {
+      buffer[msg_size] = atoi(pch);
+      msg_size++;
+      pch = strtok (NULL, ", ");
+      
+    }
+    //Serial.println(buffer);
+    Serial.println(msg_size);
+    irsend.sendRaw(buffer, msg_size, khz);
+    webserver.send(200, "text/html", "completeir,1:1,0");
+  }
+  
+  
   webserver.send(200, "text/html", body);
 }
 
