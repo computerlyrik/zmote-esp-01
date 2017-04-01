@@ -2,8 +2,6 @@
 #include "ir.h"
 #include "uuid.h"
 
-String local_ip;
-String mac;
 
 char uuid[12];
 
@@ -34,8 +32,6 @@ void setup()
     webserver.send(200, "text/html", buffer );
   });
 
-
-  
   char command_uri[17] = "/v2/";
   strcat(command_uri,uuid);
   Serial.print("Listening on command uri: ");
@@ -45,9 +41,6 @@ void setup()
   webserver.onNotFound(handleNotFound);
   
   setup_networking(); 
-
-  //mac = WiFi.macAddress();
-  //local_ip = WiFi.localIP().toString();
 
   setup_ir();
 
@@ -118,21 +111,27 @@ void handleRequestCommand() {
 
 
     unsigned int buffer[HTTP_BODYSIZE];
-    char ircode_char[ircode.length()];
-    ircode.toCharArray(ircode_char, ircode.length());
+    char ircode_char[ircode.length()+1];
+    ircode.toCharArray(ircode_char, ircode.length()+1);
   
     char * pch;
-    pch = strtok (ircode_char, ", ");
+    pch = strtok(ircode_char, " ,");
     uint8_t msg_size = 0;
     while (pch != NULL)
     {
       buffer[msg_size] = atoi(pch);
       msg_size++;
-      pch = strtok (NULL, ", ");
+      pch = strtok(NULL, " ,");
       
     }
-    //Serial.println(buffer);
+    /*
+    for (int i = 0; i < msg_size; i++) {
+      Serial.print(buffer[i]);
+      Serial.print(", ");
+    }
+    Serial.println();
     Serial.println(msg_size);
+    */
     irsend.sendRaw(buffer, msg_size, khz);
     webserver.send(200, "text/html", "completeir,1:1,0");
   }
