@@ -27,6 +27,14 @@ void setup()
     message += uuid;
     webserver.send(200, "text/html", message );
   });
+
+  webserver.on("/discover", HTTPMethod::HTTP_GET, []() {
+    char buffer[HTTP_BODYSIZE];
+    info_object(buffer, sizeof(buffer));
+    webserver.send(200, "text/html", buffer );
+  });
+
+
   
   char command_uri[17] = "/v2/";
   strcat(command_uri,uuid);
@@ -47,17 +55,11 @@ void setup()
 
 void loop() {
   webserver.handleClient();
-  //check_discoveryserver();
-  //check_webserver();
-   
+  handle_discoveryserver();   
 } 
 
-// ################ WEB SERVER PARSER
 
-void check_webserver() {
-}
-
-void check_discoveryserver() {
+void handle_discoveryserver() {
   int packetSize = udp.parsePacket();
   if (packetSize)
   {
@@ -82,50 +84,19 @@ void check_discoveryserver() {
       udp.write(buffer);
       udp.endPacket();
     }
-
-
   }
 }
 
-
-
-
-void info_object(char* json, size_t maxSize) {
-  StaticJsonBuffer<HTTP_BODYSIZE> jsonBuffer;
-  JsonObject& root = jsonBuffer.createObject();
-  root["name"] = "LedPipe";
-  root["id"] = mac;
-  root["ip"] = local_ip;
-  
-
-  root.printTo(json, maxSize);
-  
-}
-
-
-
-
-void process_settings(const char* body, WiFiClient client) {
-  StaticJsonBuffer<HTTP_BODYSIZE> jsonBuffer;
-  JsonObject& root = jsonBuffer.parseObject(body);
-
-  set_settings(root);
-
-}
-
-
-
-int BRIGHTNESS = 0;
-void set_settings(JsonObject& root) {
-  Serial.println("-- Set Settings");
-  
-
-  if (root.containsKey("dim")) {
-    BRIGHTNESS = root["dim"];
-    Serial.print(" Brightness/Dim: ");
-    Serial.println(BRIGHTNESS); 
-  }
-
+void info_object(char* buf, size_t maxSize) {
+  String buffer = "<-Model=zmote-esp-01><-Type=ZMT2><-Revision=1><-Make=zmote.io>";
+  buffer += "<-Config-URL=";
+  buffer += "http://";
+  buffer += WiFi.localIP().toString();
+  buffer += ">";
+  buffer += "<-UUID=";
+  buffer += uuid;
+  buffer += ">";
+  buffer.toCharArray(buf, maxSize);
 }
 
 void handleRequestCommand() {
