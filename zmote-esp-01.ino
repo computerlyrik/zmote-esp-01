@@ -1,19 +1,23 @@
 #include "networking.h"
 #include "ir.h"
+#include "uuid.h"
 
 String local_ip;
 String mac;
 
+char uuid[18];
 
 void setup() 
 {
+  get_uuid(uuid);
+    
   // start serial
   Serial.begin(9600);
   delay(1);
-/*
+
   webserver.on("/", handleRoot);
-  webserver.on("/ir", handleIr); 
-*/ 
+  webserver.on("/uuid", handleRequestUUID); 
+ 
   webserver.on("/inline", [](){
     webserver.send(200, "text/plain", "this works as well");
   });
@@ -110,3 +114,10 @@ void set_settings(JsonObject& root) {
 
 }
 
+
+void handleRoot() {
+ webserver.send(200, "text/html", "<html><head> <title>zmote-esp-01</title></head><body><h1>ZMote API v2 Endpoint</h1></body></html>");
+}
+void handleRequestUUID() {
+ webserver.send(200, "text/html", "uuid,");//+uuid);
+}

@@ -27,7 +27,7 @@ void setup_networking()
   Serial.println("Discovery server started");
 
 
-  if (mdns.begin("esp8266", WiFi.localIP())) {
+  if (mdns.begin(MDNS_NAME, WiFi.localIP())) {
     Serial.println("MDNS responder started");
   }
   
