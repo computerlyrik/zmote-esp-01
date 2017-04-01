@@ -1,11 +1,11 @@
 #include "networking.h"
 #include "ir.h"
-//#include "uuid.h"
+#include "uuid.h"
 
 String local_ip;
 String mac;
 
-char uuid[18];
+char uuid[12];
 
 void setup() 
 {
@@ -17,15 +17,24 @@ void setup()
   get_uuid(uuid);
   Serial.print("Setup got uuid: ");
   Serial.println(uuid);
-/*
-  webserver.on("/", handleRoot);
-  webserver.on("/uuid", handleRequestUUID); 
- 
-  webserver.on("/inline", [](){
-    webserver.send(200, "text/plain", "this works as well");
+
+  webserver.on("/", []() {
+     webserver.send(200, "text/html", "<html><head> <title>zmote-esp-01</title></head><body><h1>ZMote API v2 Endpoint</h1></body></html>");
   });
-*/
-  //webserver.onNotFound(handleNotFound);
+  
+  webserver.on("/uuid", HTTPMethod::HTTP_GET, []() {
+    String message = "uuid,";
+    message += uuid;
+    webserver.send(200, "text/html", message );
+  });
+  
+  char command_uri[17] = "/v2/";
+  strcat(command_uri,uuid);
+  Serial.print("Listening on command uri: ");
+  Serial.println(command_uri);
+  webserver.on(command_uri, HTTPMethod::HTTP_POST, handleRequestCommand);
+
+  webserver.onNotFound(handleNotFound);
   
   setup_networking(); 
 
@@ -37,8 +46,7 @@ void setup()
 }
 
 void loop() {
-  Serial.println("foo");
-  delay(2000);   
+  webserver.handleClient();
   //check_discoveryserver();
   //check_webserver();
    
@@ -120,10 +128,25 @@ void set_settings(JsonObject& root) {
 
 }
 
-
-void handleRoot() {
- webserver.send(200, "text/html", "<html><head> <title>zmote-esp-01</title></head><body><h1>ZMote API v2 Endpoint</h1></body></html>");
+void handleRequestCommand() {
+  String body = webserver.arg("plain");
+  String parameters = "";
+  Serial.print("processing body request: ");
+  Serial.print(body);
+  webserver.send(200, "text/html", body);
 }
-void handleRequestUUID() {
- webserver.send(200, "text/html", "uuid,");//+uuid);
+
+void handleNotFound(){
+  String message = "File Not Found\n\n";
+  message += "URI: ";
+  message += webserver.uri();
+  message += "\nMethod: ";
+  message += (webserver.method() == HTTP_GET)?"GET":"POST";
+  message += "\nArguments: ";
+  message += webserver.args();
+  message += "\n";
+  for (uint8_t i=0; i<webserver.args(); i++){
+    message += " " + webserver.argName(i) + ": " + webserver.arg(i) + "\n";
+  }
+  webserver.send(404, "text/plain", message);
 }
