@@ -32,10 +32,10 @@ void setup()
     webserver.send(200, "text/html", buffer );
   });
 
-  char command_uri[17] = "/v2/";
+  char command_uri[65] = "/v2/";
   strcat(command_uri,uuid);
-  //Serial.print("Listening on command uri: ");
-  //Serial.println(command_uri);
+  Serial.print("Listening on command uri: ");
+  Serial.println(command_uri);
   webserver.on(command_uri, HTTPMethod::HTTP_POST, handleRequestCommand);
 
   webserver.onNotFound(handleNotFound);
