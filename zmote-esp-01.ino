@@ -7,14 +7,9 @@ char uuid[12];
 
 void setup() 
 {
-  pinMode(LED_BUILTIN, OUTPUT);     // Initialize the LED_BUILTIN pin as an output
-  digitalWrite(LED_BUILTIN, LOW); 
-
-  pinMode(2, OUTPUT);     // Initialize the LED_BUILTIN pin as an output
-  digitalWrite(2, LOW); 
 
   // start serial
-  //Serial.begin(9600);
+  Serial.begin(9600);
   delay(100);
 
   get_uuid(uuid);
@@ -67,38 +62,39 @@ void handle_discoveryserver() {
   int packetSize = udp.parsePacket();
   if (packetSize)
   {
-    digitalWrite(LED_BUILTIN, LOW); 
-    //Serial.printf("Discovery Received %d bytes from %s, port %d\n", packetSize, udp.remoteIP().toString().c_str(), udp.remotePort());
+    Serial.printf("Discovery Received %d bytes from %s, port %d\n", packetSize, udp.remoteIP().toString().c_str(), udp.remotePort());
     int len = udp.read(incomingPacket, 255);
     if (len > 0)
     {
       incomingPacket[len] = 0;
     }
     //Serial.printf("UDP packet contents: %s\n", incomingPacket);
-    if (incomingPacket[0] == 0xbe && incomingPacket[1] == 0xef)
+    String pack = incomingPacket;
+    Serial.print("UDP Server received: ");
+    Serial.println(pack);
+    if (pack.length() <= 8 && pack.substring(0,8).equalsIgnoreCase("SENDAMXB"))
     {
-      /*
+      
       Serial.print("Answering to discoverer ip ");
       Serial.print(udp.remoteIP());
       Serial.print(" port ");
       Serial.println(udp.remotePort());
-      */
+      
       udp.beginPacket(udp.remoteIP(), udp.remotePort());
       char buffer[HTTP_BODYSIZE];
       info_object(buffer, sizeof(buffer));
-      /*
+      
       Serial.print("Discovery Answer: ");
       Serial.println(buffer);
-      */
+      
       udp.write(buffer);
       udp.endPacket();
     }
-  digitalWrite(LED_BUILTIN, HIGH); 
   }
 }
 
 void info_object(char* buf, size_t maxSize) {
-  String buffer = "<-Model=zmote-esp-01><-Type=ZMT2><-Revision=1><-Make=zmote.io>";
+  String buffer = "AMXB<-Model=zmote-esp-01><-Type=ZMT2><-Revision=1><-Make=zmote.io>";
   buffer += "<-Config-URL=";
   buffer += "http://";
   buffer += WiFi.localIP().toString();
@@ -115,13 +111,9 @@ void handleRequestCommand() {
   //Serial.print("processing body request: ");
   //Serial.println(body);
 
-  int khz = 38;
-  unsigned int irSignal[] = {9000, 4500, 560, 560, 560, 560, 560, 1690, 560, 560, 560, 560, 560, 560, 560, 560, 560, 560, 560, 1690, 560, 1690, 560, 560, 560, 1690, 560, 1690, 560, 1690, 560, 1690, 560, 1690, 560, 560, 560, 560, 560, 560, 560, 1690, 560, 560, 560, 560, 560, 560, 560, 560, 560, 1690, 560, 1690, 560, 1690, 560, 560, 560, 1690, 560, 1690, 560, 1690, 560, 1690, 560, 39416, 9000, 2210, 560}; //AnalysIR Batch Export (IRremote) - RAW
+  int khz;
   
-  irsend.sendRaw(irSignal, sizeof(irSignal) / sizeof(irSignal[0]), khz); //Note the approach used to automatically calculate the size of the array.
-
   if (body.substring(0,6) == "sendir") {
-    digitalWrite(LED_BUILTIN, LOW); 
     //Serial.println("Processing sendir");
     String ircode = body.substring(13);  //sendir,1:1,0,%s"
     //Serial.print("Ircode: ");
@@ -135,24 +127,41 @@ void handleRequestCommand() {
     char * pch;
     pch = strtok(ircode_char, " ,");
     uint8_t msg_size = 0;
+    uint8_t pos = 0;
+    uint8_t times = 0;
     while (pch != NULL)
     {
-      buffer[msg_size] = atoi(pch);
-      msg_size++;
+      if (pos == 0) {
+        khz = atoi(pch) / 1000;
+      }
+      else if (pos == 1) {
+        times = atoi(pch);
+      }
+      else if (pos == 2) 
+      {
+        //garbage
+      }
+      else {
+        buffer[msg_size] = atoi(pch);
+        msg_size++;
+      }
+
       pch = strtok(NULL, " ,");
-      
+      pos++;      
     }
-    /*
+    
     for (int i = 0; i < msg_size; i++) {
       Serial.print(buffer[i]);
       Serial.print(", ");
     }
     Serial.println();
     Serial.println(msg_size);
-    */
-    irsend.sendRaw(buffer, msg_size, khz);
+    
+    for (int t = 0; t < times; t++) {
+      irsend.sendRaw(buffer, msg_size, khz);
+      delay(200);
+    }
     webserver.send(200, "text/html", "completeir,1:1,0");
-    digitalWrite(LED_BUILTIN, HIGH);
 
   }
   

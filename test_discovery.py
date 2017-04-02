@@ -1,7 +1,7 @@
 import socket
-UDP_IP = "255.255.255.255"
+UDP_IP = "239.255.250.250" #"255.255.255.255"
 UDP_PORT = 9130
-MESSAGE = bytearray([0xbe, 0xef])
+MESSAGE = "SENDAMXB"
 
 print "UDP target IP:", UDP_IP
 print "UDP target port:", UDP_PORT

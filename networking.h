@@ -15,6 +15,11 @@
 
 
 ESP8266WebServer webserver(WEB_PORT);
+
+IPAddress discover_mcast_ip(239, 255, 250, 250);
+unsigned int discover_mcast_port = 9130; 
+#define UDP_PORT 9130
+
 WiFiUDP udp;
 MDNSResponder mdns;
 
