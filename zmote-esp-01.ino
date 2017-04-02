@@ -2,8 +2,7 @@
 #include "ir.h"
 #include "uuid.h"
 
-
-char uuid[12];
+char uuid[48]; //8+1+(6*2+5)];
 
 void setup() 
 {
@@ -13,8 +12,9 @@ void setup()
   delay(100);
 
   get_uuid(uuid);
-  //Serial.print("Setup got uuid: ");
-  //Serial.println(uuid);
+  Serial.print("Setup got uuid: ");
+  Serial.println(uuid);
+
 
   webserver.on("/", []() {
      webserver.send(200, "text/html", "<html><head> <title>zmote-esp-01</title></head><body><h1>ZMote API v2 Endpoint</h1></body></html>");
@@ -178,5 +178,6 @@ void handleNotFound(){
   for (uint8_t i=0; i<webserver.args(); i++){
     message += " " + webserver.argName(i) + ": " + webserver.arg(i) + "\n";
   }
+  Serial.println(message);
   webserver.send(404, "text/plain", message);
 }
