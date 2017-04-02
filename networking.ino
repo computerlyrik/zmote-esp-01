@@ -24,7 +24,7 @@ void setup_networking()
   Serial.println("Server started");
 
   //udp.begin(UDP_PORT);
-  if (!udp.beginMulticast(WiFi.localIP(), discover_mcast_ip, discover_mcast_port)) {
+  if (!udp.beginMulticast(WiFi.localIP(), discover_mcast_ip, discover_mcast_query_port)) {
     Serial.println("Starting of discovery server failed"); 
   } else {
     Serial.println("Discovery server started");

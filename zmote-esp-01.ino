@@ -73,8 +73,11 @@ void handle_discoveryserver() {
       Serial.print(udp.remoteIP());
       Serial.print(" port ");
       Serial.println(udp.remotePort());
-      
-      udp.beginPacket(udp.remoteIP(), udp.remotePort());
+
+      udp.beginPacketMulticast(discover_mcast_ip, discover_mcast_response_port, WiFi.localIP());
+
+//      udp.beginPacket(udp.remoteIP(), udp.remotePort());
+  
       char buffer[HTTP_BODYSIZE];
       info_object(buffer, sizeof(buffer));
       
