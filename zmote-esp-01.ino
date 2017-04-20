@@ -60,19 +60,15 @@ void discovery_server() {
     {
       incomingPacket[len] = 0;
     }
-    //Serial.printf("UDP packet contents: %s\n", incomingPacket);
+    Serial.printf("UDP packet contents: %s\n", incomingPacket);
     String pack = incomingPacket;
-    Serial.print("UDP Server received: ");
-    Serial.println(pack);
+    Serial.printf("UDP Server received: %s\n", pack.c_str());
     if (pack.length() <= 8 && pack.substring(0,8).equalsIgnoreCase("SENDAMXB"))
     {
       
-      Serial.print("Answering to discoverer ip ");
-      Serial.print(udp.remoteIP());
-      Serial.print(" port ");
-      Serial.println(udp.remotePort());
+      Serial.printf("Answering to discoverer ip %s port %s\n", udp.remoteIP().toString().c_str(), udp.remotePort());
 
-      udp.beginPacketMulticast(discover_mcast_ip, discover_mcast_response_port, WiFi.localIP());
+      udp.beginPacketMulticast(discover_mcast_ip, UDP_RESPONSE_PORT, WiFi.localIP());
 
 //      udp.beginPacket(udp.remoteIP(), udp.remotePort());
   

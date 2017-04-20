@@ -19,7 +19,6 @@
 IPAddress discover_mcast_ip(239, 255, 250, 250);
 #define UDP_QUERY_PORT 9130
 #define UDP_RESPONSE_PORT 9131
-#define UDP_PORT 9130
 
 #define WEB_PORT 80
 
