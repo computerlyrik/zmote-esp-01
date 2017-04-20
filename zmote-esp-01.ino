@@ -8,7 +8,7 @@ void setup()
 {
 
   // start serial
-  Serial.begin(9600);
+  Serial.begin(9600,SERIAL_8N1,SERIAL_TX_ONLY); 
   delay(100);
 
   get_uuid(uuid);
