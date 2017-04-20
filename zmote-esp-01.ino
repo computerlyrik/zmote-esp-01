@@ -37,8 +37,6 @@ void setup()
   Serial.print("Listening on command uri: ");
   Serial.println(command_uri);
   webserver.on(command_uri, HTTPMethod::HTTP_POST, handleRequestCommand);
-
-  webserver.onNotFound(handleNotFound);
   
   setup_networking(); 
 
@@ -48,11 +46,11 @@ void setup()
 
 void loop() {
   webserver.handleClient();
-  handle_discoveryserver();   
+  discovery_server();   
 } 
 
 
-void handle_discoveryserver() {
+void discovery_server() {
   int packetSize = udp.parsePacket();
   if (packetSize)
   {
@@ -164,20 +162,4 @@ void handleRequestCommand() {
   
   
   webserver.send(200, "text/html", body);
-}
-
-void handleNotFound(){
-  String message = "File Not Found\n\n";
-  message += "URI: ";
-  message += webserver.uri();
-  message += "\nMethod: ";
-  message += (webserver.method() == HTTP_GET)?"GET":"POST";
-  message += "\nArguments: ";
-  message += webserver.args();
-  message += "\n";
-  for (uint8_t i=0; i<webserver.args(); i++){
-    message += " " + webserver.argName(i) + ": " + webserver.arg(i) + "\n";
-  }
-  Serial.println(message);
-  webserver.send(404, "text/plain", message);
 }

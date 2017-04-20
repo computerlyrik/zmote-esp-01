@@ -9,6 +9,8 @@ struct zmote_command {
   String data;
 };
 
-IRsend irsend(2);
+#define IR_PIN 3
+
+IRsend irsend(IR_PIN);
 
 #endif
