@@ -8,7 +8,7 @@ void setup()
 {
 
   // start serial
-  Serial.begin(9600);
+  Serial.begin(9600,SERIAL_8N1,SERIAL_TX_ONLY); 
   delay(100);
 
   get_uuid(uuid);
@@ -37,8 +37,6 @@ void setup()
   Serial.print("Listening on command uri: ");
   Serial.println(command_uri);
   webserver.on(command_uri, HTTPMethod::HTTP_POST, handleRequestCommand);
-
-  webserver.onNotFound(handleNotFound);
   
   setup_networking(); 
 
@@ -48,7 +46,7 @@ void setup()
 
 void loop() {
   webserver.handleClient();
-  handle_discoveryserver();   
+  discovery_server();   
 
   int khz = 38;
   unsigned int irSignal[] = {9000, 4500, 560, 560, 560,  560, 560,  560, 560, 1690, 560, 560, 560,  560, 560, 560, 560, 560, 560,  1690, 560, 1690, 560, 560, 560,  560, 560, 1690, 560, 560, 560,  560, 560, 560, 560, 1690, 560, 1690, 560, 1690, 560, 560, 560,  560, 560, 560, 560, 560, 560, 1690, 560, 560, 560, 560, 560,  560, 560, 1690, 560, 1690, 560, 1690, 560, 1690, 560, 560, 560, 75535, 9000, 2210, 560};
@@ -58,7 +56,7 @@ void loop() {
 } 
 
 
-void handle_discoveryserver() {
+void discovery_server() {
   int packetSize = udp.parsePacket();
   if (packetSize)
   {
@@ -68,19 +66,15 @@ void handle_discoveryserver() {
     {
       incomingPacket[len] = 0;
     }
-    //Serial.printf("UDP packet contents: %s\n", incomingPacket);
+    Serial.printf("UDP packet contents: %s\n", incomingPacket);
     String pack = incomingPacket;
-    Serial.print("UDP Server received: ");
-    Serial.println(pack);
+    Serial.printf("UDP Server received: %s\n", pack.c_str());
     if (pack.length() <= 8 && pack.substring(0,8).equalsIgnoreCase("SENDAMXB"))
     {
       
-      Serial.print("Answering to discoverer ip ");
-      Serial.print(udp.remoteIP());
-      Serial.print(" port ");
-      Serial.println(udp.remotePort());
+      Serial.printf("Answering to discoverer ip %s port %s\n", udp.remoteIP().toString().c_str(), udp.remotePort());
 
-      udp.beginPacketMulticast(discover_mcast_ip, discover_mcast_response_port, WiFi.localIP());
+      udp.beginPacketMulticast(discover_mcast_ip, UDP_RESPONSE_PORT, WiFi.localIP());
 
 //      udp.beginPacket(udp.remoteIP(), udp.remotePort());
   
@@ -170,20 +164,4 @@ void handleRequestCommand() {
   
   
   webserver.send(200, "text/html", body);
-}
-
-void handleNotFound(){
-  String message = "File Not Found\n\n";
-  message += "URI: ";
-  message += webserver.uri();
-  message += "\nMethod: ";
-  message += (webserver.method() == HTTP_GET)?"GET":"POST";
-  message += "\nArguments: ";
-  message += webserver.args();
-  message += "\n";
-  for (uint8_t i=0; i<webserver.args(); i++){
-    message += " " + webserver.argName(i) + ": " + webserver.arg(i) + "\n";
-  }
-  Serial.println(message);
-  webserver.send(404, "text/plain", message);
 }
